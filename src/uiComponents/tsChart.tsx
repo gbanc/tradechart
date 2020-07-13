@@ -12,8 +12,8 @@ import { MovingAverageTooltip, HoverTooltip, OHLCTooltip, SingleValueTooltip } f
 import { withDeviceRatio } from "react-financial-charts/lib/utils";
 import { lastVisibleItemBasedZoomAnchor } from "react-financial-charts/lib/utils/zoomBehavior";
 import { IOHLCData, withOHLCData, withSize } from "../data";
-
-
+import { Annotate, SvgPathAnnotation, buyPath, sellPath} from "react-financial-charts/lib/annotation";
+import algo from "../data/algo"
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -89,9 +89,41 @@ class StockChart extends React.Component<StockChartProps> {
             .merge((d: any, c: any) => { d.ema26 = c; })
             .accessor((d: any) => d.ema26);
 
+		const buySell = algo()
+			.windowSize(2)
+			.accumulator(([prev, now]) => {
+				const { ema12: prevShortTerm, ema26: prevLongTerm } = prev;
+				const { ema12: nowShortTerm, ema26: nowLongTerm } = now;
+				if (prevShortTerm < prevLongTerm && nowShortTerm > nowLongTerm) return "LONG";
+				if (prevShortTerm > prevLongTerm && nowShortTerm < nowLongTerm) return "SHORT";
+			})
+			.merge((d, c) => { d.longShort = c; });
+
+		const defaultAnnotationProps = {
+			onClick: console.log.bind(console),
+		};
+
+		const longAnnotationProps = {
+			...defaultAnnotationProps,
+			y: ({ yScale, datum }) => yScale(datum.low),
+			fill: "#006517",
+			path: buyPath,
+			tooltip: "Go long",
+		};
+
+		const shortAnnotationProps = {
+			...defaultAnnotationProps,
+			y: ({ yScale, datum }) => yScale(datum.high),
+			fill: "#FF0000",
+			path: sellPath,
+			tooltip: "Go short",
+		};
+
+
+
         const elder = elderRay();
 
-        const calculatedData = elder(ema26(ema12(initialData)));
+        const calculatedData = buySell(ema26(ema12(initialData)));
 
         const { margin, xScaleProvider } = this;
 
@@ -199,6 +231,13 @@ class StockChart extends React.Component<StockChartProps> {
 						fontSize={15}
 					/>
                     <OHLCTooltip origin={[8, 16]} />
+					<Annotate with={SvgPathAnnotation} when={d => d.longShort === "LONG"}
+						usingProps={longAnnotationProps} />
+					<Annotate with={SvgPathAnnotation} when={d => d.longShort === "SHORT"}
+						usingProps={shortAnnotationProps} />
+
+
+
                 </Chart>
                 <Chart
                     id={4}
@@ -223,6 +262,8 @@ class StockChart extends React.Component<StockChartProps> {
                         yLabel="Elder Ray"
                         yDisplayFormat={(d: any) => `${this.pricesDisplayFormat(d.bullPower)}, ${this.pricesDisplayFormat(d.bearPower)}`}
                         origin={[8, 16]} />
+                        
+
 
                 </Chart>
                 <CrossHairCursor />
