@@ -7,7 +7,7 @@ import { getData } from "./uiComponents/utils"
 import OhlcData from "./uiComponents/ohlcData"
 import { timeParse } from "d3-time-format";
 import "babel-polyfill";
-
+import StockChart from "./uiComponents/ohlcTs";
 function App() {
   return (
       <>
@@ -19,7 +19,7 @@ function App() {
           <Tab label="Item 4" value="1"/>
         </Tabs>
       </AppBar>
-      < OhlcData />
+      < StockChart />
       </>
   );    
 }
