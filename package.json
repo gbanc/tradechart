@@ -11,7 +11,7 @@
     "start": "webpack-dev-server -d --content-base ./public"
   },
   "dependencies": {
-    "@material-ui/core": "^3.9.2",
+    "@material-ui/core": "^3.9.4",
     "@material-ui/icons": "^3.0.2",
     "@material-ui/utils": "^3.0.0-alpha.3",
     "@types/d3": "^5.7.2",
@@ -24,8 +24,8 @@
     "d3-scale": "^1.0.7",
     "d3-time-format": "^2.2.3",
     "prop-types": "^15.6.0",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
     "react-financial-charts": "^0.5.1",
     "react-stockcharts": "^0.7.8",
     "react-virtualized-auto-sizer": "^1.0.2",

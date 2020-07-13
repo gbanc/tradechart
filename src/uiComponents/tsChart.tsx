@@ -8,10 +8,12 @@ import { elderRay, ema } from "react-financial-charts/lib/indicator";
 import { ZoomButtons } from "react-financial-charts/lib/interactive";
 import { discontinuousTimeScaleProviderBuilder } from "react-financial-charts/lib/scale";
 import { BarSeries, CandlestickSeries, ElderRaySeries, LineSeries } from "react-financial-charts/lib/series";
-import { MovingAverageTooltip, OHLCTooltip, SingleValueTooltip } from "react-financial-charts/lib/tooltip";
+import { MovingAverageTooltip, HoverTooltip, OHLCTooltip, SingleValueTooltip } from "react-financial-charts/lib/tooltip";
 import { withDeviceRatio } from "react-financial-charts/lib/utils";
 import { lastVisibleItemBasedZoomAnchor } from "react-financial-charts/lib/utils/zoomBehavior";
 import { IOHLCData, withOHLCData, withSize } from "../data";
+
+
 
 interface StockChartProps {
     readonly data: IOHLCData[];
@@ -19,6 +21,43 @@ interface StockChartProps {
     readonly dateTimeFormat?: string;
     readonly width: number;
     readonly ratio: number;
+}
+
+const dateFormat = timeFormat("%Y-%m-%d");
+const numberFormat = format(".2f");
+
+function tooltipContent(ys) {
+	return ({ currentItem, xAccessor }) => {
+		return {
+			x: dateFormat(xAccessor(currentItem)),
+			y: [
+				{
+					label: "open",
+					value: currentItem.open && numberFormat(currentItem.open)
+				},
+				{
+					label: "high",
+					value: currentItem.high && numberFormat(currentItem.high)
+				},
+				{
+					label: "low",
+					value: currentItem.low && numberFormat(currentItem.low)
+				},
+				{
+					label: "close",
+					value: currentItem.close && numberFormat(currentItem.close)
+				}
+			]
+				.concat(
+					ys.map(each => ({
+						label: each.label,
+						value: each.value(currentItem),
+						stroke: each.stroke
+					}))
+				)
+				.filter(line => line.value)
+		};
+	};
 }
 
 class StockChart extends React.Component<StockChartProps> {
@@ -141,6 +180,24 @@ class StockChart extends React.Component<StockChartProps> {
                     />
 
                     <ZoomButtons />
+					<HoverTooltip
+						yAccessor={ema26.accessor()}
+						tooltipContent={tooltipContent([
+							{
+								label: `${ema12.type()}(${ema12.options()
+									.windowSize})`,
+								value: d => this.pricesDisplayFormat(ema12.accessor()(d)),
+								stroke: ema12.stroke()
+							},
+							{
+								label: `${ema26.type()}(${ema26.options()
+									.windowSize})`,
+								value: d => this.pricesDisplayFormat(ema26.accessor()(d)),
+								stroke: ema26.stroke()
+							}
+						])}
+						fontSize={15}
+					/>
                     <OHLCTooltip origin={[8, 16]} />
                 </Chart>
                 <Chart
